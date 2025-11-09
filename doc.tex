@@ -1,0 +1,224 @@
+% Documentación: Matemática Discreta y Divisibilidad aplicada a cifrado
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{float} % Para mejor control de posición de figuras
+\geometry{margin=1in}
+
+\geometry{letterpaper, margin=1in}
+\setstretch{1.2}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    {\scshape\large Universidad del Valle de Guatemala \par}
+    \vspace{0.3cm}
+    {\scshape\large Matematica Discreta \par}
+    \vspace{0.3cm}
+    {\scshape\large Sección 40\par}
+    \vfill
+    \includegraphics[width=0.4\textwidth]{images/Escudo.png}\\[0.3cm]
+    \vfill
+    {\LARGE\bfseries \textbf{Proyecto Final - Cifrado}\par}
+    \vfill
+    
+    {\scshape\large Jackelyn Girón 24737 \par}
+    \vspace{0.3cm}
+    {\scshape\large Josue Hernandez 24770\par}
+    \vspace{0.3cm}
+    {\scshape\large Juan Montenegro 24750\par}
+    \vspace{0.3cm}
+    {\scshape\large Oscar Rompich 24880\par}
+    \vspace{0.3cm}
+    {\scshape\large Sergio Tan 24759 \par}
+    \vfill
+
+    {\large Guatemala, Noviembre 2025\par}
+    \vspace{1cm}
+
+    \mbox{}
+    \vspace*{\fill}
+\end{titlepage}
+
+
+\begin{abstract}
+  Este documento presenta definiciones y teoremas básicos de la matemática discreta y la teoría de divisibilidad que sustentan un esquema de cifrado basado en congruencias y aritmética modular. También se documentan casos de uso, referencias, y se incluyen capturas e imágenes que muestran el funcionamiento del programa implementado.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introducción}
+Breve introducción al uso de teoría de números en criptografía simple. El presente trabajo documenta los conceptos necesarios para entender la implementación del programa de cifrado y descifrado que acompaña este proyecto.
+
+\section{Contratos y alcance}
+\begin{itemize}
+  \item Entrada: texto plano (cadena de caracteres) o archivo de texto.
+  \item Salida: texto cifrado (formato propio del programa) y texto descifrado (para verificación).
+  \item Errores: manejo de claves no válidas, carencia de inverso multiplicativo y entradas vacías.
+\end{itemize}
+
+\section{Definiciones básicas}
+Aquí se recogen las definiciones mínimas necesarias.
+
+\begin{description}
+  \item[Divisibilidad.] Dados enteros $a,b$, decimos que $a$ divide a $b$ (escrito $a\mid b$) si existe un entero $k$ tal que $b=ak$.
+  \item[Máximo común divisor.] El máximo común divisor de dos enteros $a$ y $b$, denotado $\gcd(a,b)$, es el mayor entero positivo que divide a ambos.
+  \item[Congruencia módulo $n$.] Dados $a,b\in\mathbb{Z}$ y $n\in\mathbb{Z}_{>0}$, escribimos $a\equiv b \pmod n$ si $n\mid (a-b)$.
+  \item[Clase residual.] La clase de $a$ módulo $n$ es el conjunto $[a]_n=\{b\in\mathbb{Z}: b\equiv a\pmod n\}$.
+  \item[Anillo $\mathbb{Z}_n$.] El conjunto de clases residuales modulo $n$, con suma y producto bien definidos, se denota $\mathbb{Z}_n$.
+  \item[Inverso multiplicativo módulo $n$.] Dado $a\in\mathbb{Z}_n$, se dice que $a$ tiene inverso multiplicativo módulo $n$ si existe $b\in\mathbb{Z}_n$ tal que $ab\equiv 1\pmod n$. Esto ocurre exactamente cuando $\gcd(a,n)=1$.
+  \item[Algoritmo de Euclides.] Procedimiento eficiente para calcular el $\gcd(a,b)$ y los coeficientes de Bézout: enteros $x,y$ tales que $ax+by=\gcd(a,b)$.
+  \item[Función phi de Euler.] $\varphi(n)$ es el número de enteros entre $1$ y $n$ que son coprimos con $n$.
+\end{description}
+
+\section{Teoremas y principios importantes}
+Se listan teoremas usados frecuentemente en cifrado basado en aritmética modular.
+
+\begin{itemize}
+  \item \textbf{Propiedades básicas de la congruencia:} Si $a\equiv b\pmod n$ y $c\equiv d\pmod n$, entonces
+    \begin{align*}
+      a+c &\equiv b+d \pmod n, \\
+      a-c &\equiv b-d \pmod n, \\
+      ac &\equiv bd \pmod n.
+    \end{align*}
+
+  \item \textbf{Teorema de Bezout:} Para enteros $a,b$ existen $x,y\in\mathbb{Z}$ tales que $ax+by=\gcd(a,b)$. En particular, si $\gcd(a,n)=1$, entonces $ax\equiv 1\pmod n$ para algún $x$ y $x$ es el inverso multiplicativo de $a$ modulo $n$.
+
+  \item \textbf{Teorema de Euler (generalización del pequeño teorema de Fermat):} Si $\gcd(a,n)=1$ entonces
+    \[ a^{\varphi(n)}\equiv 1 \pmod n. \]
+    Esto se utiliza para construir inversos y para análisis de claves en esquemas multiplicativos.
+
+  \item \textbf{Pequeño teorema de Fermat:} Si $p$ es primo y $p\nmid a$, entonces
+    \[ a^{p-1}\equiv 1 \pmod p. \]
+
+  \item \textbf{Teorema del resto chino (TRC):} Si $n_1,\dots,n_k$ son enteros positivos pairwise coprimos, entonces el sistema
+    \[ x\equiv a_i \pmod{n_i}, \quad i=1,\dots,k \]
+    tiene una solución única modulo $N=\prod_{i} n_i$. Esto permite reconstruir valores grandes desde restos, útil en ciertos esquemas de clave dividida o optimizaciones.
+
+  \item \textbf{Inexistencia de inverso:} Si $d=\gcd(a,n)>1$, entonces $a$ no tiene inverso módulo $n$; en cifrados basados en multiplicación esto implica claves inválidas o pérdida de información.
+\end{itemize}
+
+\section{Relación con el programa (resumen técnico)}
+Explicación breve de cómo se usan los conceptos anteriores en el programa:
+\begin{enumerate}
+  \item La clave puede estar representada por un entero $k$ y el módulo $n$ fijo; el cifrado aplica transformaciones del tipo $c\equiv f(m,k)\pmod n$, donde $m$ es el mensaje (convertido a número).
+  \item Para descifrar se necesita el inverso o una operación complementaria que recupere $m$ a partir de $c$.
+  \item El algoritmo de Euclides ext. se usa para hallar inversos y detectar claves inválidas (cuando $\gcd(k,n)\ne 1$).
+\end{enumerate}
+
+\section{Casos de uso}
+Se documentan casos de uso prácticos donde un cifrado simple basado en aritmética modular puede ser útil. Para cada caso se indica: objetivo, flujo básico y consideraciones de seguridad.
+
+\subsection*{Caso 1: Mensajes cortos entre dispositivos embebidos}
+\begin{itemize}
+  \item Objetivo: Proteger mensajes de control o telemetría de lectura casual.
+  \item Flujo: Dispositivo A cifra con clave compartida $k$, envía; dispositivo B descifra con $k^{-1}$ modulo $n$.
+  \item Consideraciones: No adecuado contra adversarios ricos en recursos (no es cifrado fuerte), pero útil para evitar exposición accidental.
+\end{itemize}
+
+\subsection*{Caso 2: Protección básica de archivos de configuración}
+\begin{itemize}
+  \item Objetivo: Evitar que usuarios no técnicos editen parámetros sensibles.
+  \item Flujo: Archivo de texto con parámetros es cifrado antes de distribuirlo; la aplicación lo descifra al inicio.
+  \item Consideraciones: Guardar la clave en código es inseguro; usar combinaciones con ofuscación o almacenamiento seguro.
+\end{itemize}
+
+\subsection*{Caso 3: Firma/Integridad ligera mediante residuos}
+\begin{itemize}
+  \item Objetivo: Detectar cambios accidentales usando una función tipo checksum basada en congruencias.
+  \item Flujo: Se calcula un residuo $r\equiv h(m)\pmod n$ y se almacena junto al mensaje; al leer, se verifica la congruencia.
+  \item Consideraciones: No sustituye MAC/HMAC para seguridad frente a atacantes maliciosos.
+\end{itemize}
+
+\subsection*{Caso 4: Enseñanza y demostraciones de criptografía}
+\begin{itemize}
+  \item Objetivo: Entender conceptos de aritmética modular, inversos y algoritmo de Euclides en la práctica.
+  \item Flujo: Estudiantes usan el programa para cifrar/descifrar mensajes y ver fallas cuando la clave no es inversible.
+  \item Consideraciones: Ideal como herramienta didáctica; explicitar límites de seguridad.
+\end{itemize}
+
+\subsection*{Caso 5: Pruebas rápidas de prototipo en sistemas con recursos limitados}
+\begin{itemize}
+  \item Objetivo: Probar un canal de comunicación cifrado en prototipos antes de integrar soluciones fuertes.
+  \item Flujo: Integradores prueban intercambio de mensajes con el esquema modular antes de migrar a RSA/AES.
+  \item Consideraciones: Usar solo en entornos controlados; mantener trazabilidad de fallos.
+\end{itemize}
+
+\section{Ejemplos}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/key_generation.png}
+  \caption{Diagrama: generación y validación de clave}
+  \label{fig:keygen}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/encrypt_flow.png}
+  \caption{Flujo de cifrado: conversión de texto a números y aplicación de la función modular}
+  \label{fig:encflow}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/decrypt_flow.png}
+  \caption{Flujo de descifrado: verificación de inversos y reconstrucción del mensaje}
+  \label{fig:decflow}
+\end{figure}
+
+\section{Reflexiones}
+\subsection{Reflexiones individuales}
+
+\textbf{Jackelyn Girón:}
+
+Este proyecto me ayudó a entender cómo las matemáticas que vemos en clase realmente se usan en la vida real. Al implementar el cifrado vi que el algoritmo de Euclides no es solo teoría, sino que es necesario para que el programa funcione. Me gustó ver cómo conceptos antiguos siguen siendo importantes en la tecnología actual, especialmente en seguridad.
+
+\textbf{Josue Hernández:}
+
+Lo más interesante del proyecto fue ver cómo todo está conectado: las congruencias, el MCD, los inversos. Antes eran solo fórmulas, pero al programarlas entendí por qué algunas claves funcionan y otras no. Me di cuenta de que entender bien la teoría hace que programar sea más fácil porque sabes exactamente qué estás haciendo.
+
+\textbf{Juan Montenegro:}
+
+Hacer este proyecto me mostró lo importante que es validar todo correctamente. No basta con que el código compile, hay que asegurarse de que matemáticamente tenga sentido. Me gustó especialmente ver cómo el texto se convierte en números, se cifra, y luego vuelve a ser texto. Es como magia, pero con matemáticas.
+
+\textbf{Oscar Rompich:}
+
+Este proyecto me enseñó que la seguridad informática se basa en matemáticas. Ver cómo funciona el cifrado desde adentro me hizo apreciar más todos los conceptos que vimos en clase. Aunque nuestro programa es simple, entiendo que los sistemas reales como los que protegen tarjetas de crédito usan los mismos principios pero más complejos.
+
+\textbf{Sergio Tan:}
+
+Lo mejor del proyecto fue implementar el algoritmo de Euclides y ver cómo encuentra el inverso de forma automática. Me pareció interesante que algo tan antiguo sea tan eficiente. También aprendí que no todos los números pueden ser claves válidas, y eso tiene sentido matemático. Ahora entiendo mejor cómo funcionan las cosas por detrás.
+
+\subsection{Reflexión grupal}
+
+Este proyecto nos mostró que la teoría matemática que vemos en clase tiene aplicaciones reales. Al implementar el cifrado, pudimos conectar conceptos como divisibilidad, MCD, congruencias y el algoritmo de Euclides en algo que realmente funciona.
+
+Lo más valioso fue trabajar en equipo y darnos cuenta de que cada parte del programa depende de entender bien las matemáticas. Cuando algo fallaba, teníamos que revisar tanto el código como la teoría para encontrar el error. Esto nos enseñó que en programación, especialmente en seguridad, no se puede solo copiar código sin entender qué hace.
+
+Nos sorprendió ver que métodos matemáticos tan antiguos siguen siendo la base de la tecnología moderna. El algoritmo de Euclides, que tiene más de 2000 años, es esencial para que nuestro cifrado funcione. Esto nos hizo apreciar más la historia de las matemáticas y su relevancia actual.
+
+También aprendimos las limitaciones de nuestro sistema. Aunque funciona bien, entendemos que no es seguro para aplicaciones reales porque es demasiado simple. Sin embargo, esta experiencia nos dio una base para entender sistemas más complejos como RSA en el futuro.
+
+En general, el proyecto nos ayudó a ver que las matemáticas discretas no son solo teoría abstracta, sino herramientas prácticas que usamos todos los días sin darnos cuenta.
+
+
+\section{Referencias}
+\begin{thebibliography}{9}
+  \bibitem{rosen} K. H. Rosen, \textit{Discrete Mathematics and Its Applications}, McGraw-Hill. (Sección sobre teoría de números y congruencias.)
+  \bibitem{stallings} W. Stallings, \textit{Cryptography and Network Security: Principles and Practice}.
+  \bibitem{menezes} A. J. Menezes, P. van Oorschot, S. A. Vanstone, \textit{Handbook of Applied Cryptography}.
+  \bibitem{katz} J. Katz, Y. Lindell, \textit{Introduction to Modern Cryptography}.
+  \bibitem{euclides} Referencia sobre el algoritmo de Euclides: \url{https://en.wikipedia.org/wiki/Euclidean_algorithm} (uso didáctico).
+\end{thebibliography}
+
+\end{document}
